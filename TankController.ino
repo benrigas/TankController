@@ -115,8 +115,8 @@ void DoSunrise(bool gradually)
 {
 	if (!gradually)
 	{
-		SetChannelBrightness(ROYAL_BLUE_PIN, 0.0);
-		SetChannelBrightness(COOL_WHITE_PIN, 0.11);
+		SetChannelBrightness(ROYAL_BLUE_PIN, 0.44);
+		SetChannelBrightness(COOL_WHITE_PIN, 0.00);
 	}
 }
 
@@ -124,8 +124,8 @@ void DoSunset(bool gradually)
 {
 	if (!gradually)
 	{
-		SetChannelBrightness(ROYAL_BLUE_PIN, 0.12);
-		SetChannelBrightness(COOL_WHITE_PIN, 0.12);
+		SetChannelBrightness(ROYAL_BLUE_PIN, 0.50);
+		SetChannelBrightness(COOL_WHITE_PIN, 0.20);
 	}
 }
 
@@ -133,8 +133,8 @@ void DoNoon(bool gradually)
 {
 	if (!gradually)
 	{
-		SetChannelBrightness(ROYAL_BLUE_PIN, 0.3);
-		SetChannelBrightness(COOL_WHITE_PIN, 0.7);
+		SetChannelBrightness(ROYAL_BLUE_PIN, 0.6);
+		SetChannelBrightness(COOL_WHITE_PIN, 0.3);
 	}
 }
 
@@ -144,7 +144,7 @@ void DoNight(bool gradually)
 
 	if (!gradually)
 	{
-		SetChannelBrightness(ROYAL_BLUE_PIN, 0.12);
+		SetChannelBrightness(ROYAL_BLUE_PIN, 0.22);
 		SetChannelBrightness(COOL_WHITE_PIN, 0.0);
 	}
 
@@ -155,8 +155,8 @@ void DoLightingStateCustom(bool gradually)
 {
 	if (!gradually)
 	{
-		SetChannelBrightness(ROYAL_BLUE_PIN, 0.4);
-		SetChannelBrightness(COOL_WHITE_PIN, 0.0);
+		SetChannelBrightness(ROYAL_BLUE_PIN, 0.6);
+		SetChannelBrightness(COOL_WHITE_PIN, 0.3);
 	}
 }
 
@@ -223,17 +223,51 @@ void SetCurrentLightingState()
 	if (currentLightingState != LightingStateCustom)
 	{
 		DateTime now = RTC.now();
-		//Serial.println(now.hour(), DEC);
-		if (now.hour() >= 7 && now.hour() < 10)
+//		
+                float blueBright = 0.0;
+                float whiteBright = 0.0;
+                
+                if (now.hour() == 9 || now.hour() == 10) blueBright = 0.22;
+                if (now.hour() == 11 || now.hour() == 12) blueBright = 0.3;
+                if (now.hour() >= 13 && now.hour() <= 16) blueBright = 0.4;
+                if (now.hour() == 17 || now.hour() == 18) blueBright = 0.3;
+                if (now.hour() >= 19 && now.hour() < 22) blueBright = 0.22;
+                
+	        if (now.hour() == 11)
+                {
+                    whiteBright = (0.2/59) * now.minute();
+                }
+                if (now.hour() == 12)
+                {
+                    whiteBright = 0.2 + (0.2/59) * now.minute();
+                }
+                if (now.hour() == 13)
+                {
+                    whiteBright = 0.4 + (0.2/59) * now.minute();
+                }
+                
+                if (now.hour() >= 14 && now.hour() <= 18) whiteBright = 0.6;
+                
+                if (now.hour() == 19)
+                {
+                    whiteBright = 0.6 - ((0.6/59) * now.minute());
+                }
+	Serial.println(blueBright, DEC);
+
+		SetChannelBrightness(ROYAL_BLUE_PIN, blueBright);
+		SetChannelBrightness(COOL_WHITE_PIN, whiteBright);
+		
+return;
+		if (now.hour() >= 9 && now.hour() < 12)
 		{
 			state = LightingStateSunrise;
                         //Serial.println("sunrise");
 		}
-		else if (now.hour() >= 10 && now.hour() < 15)
+		else if (now.hour() >= 12 && now.hour() < 17)
 		{
 			state = LightingStateNoon;
 		}
-		else if (now.hour() >= 15 && now.hour() < 19)
+		else if (now.hour() >= 17 && now.hour() < 19)
 		{
 			state = LightingStateSunset;
 		}
@@ -245,6 +279,7 @@ void SetCurrentLightingState()
 		{
 			state = LightingStateOff;
 		}
+		
 	}
 	
 	currentLightingState = state;
@@ -253,7 +288,7 @@ void SetCurrentLightingState()
 void AdjustLighting()
 {
 	SetCurrentLightingState();
-	
+	return;
 	switch (currentLightingState)
 	{
 		case LightingStateOff:
@@ -282,7 +317,7 @@ void AdjustLighting()
 
 void setup()
 { 
-  //Serial.begin(57600);
+        Serial.begin(57600);
 	// declare RoyalBlue and CoolWhite pins as outputs
 	pinMode(ROYAL_BLUE_PIN, OUTPUT);
 	pinMode(COOL_WHITE_PIN, OUTPUT);
@@ -308,8 +343,8 @@ void setup()
 
 void loop()
 { 	
- // DateTime now = RTC.now();
-		//Serial.println(now.hour(), DEC);
+//        DateTime now = RTC.now();
+//	Serial.println(now.hour(), DEC);
 	CheckButtons();
 //Serial.println(currentLightingState);
 	AdjustLighting();
